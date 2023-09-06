@@ -1,4 +1,4 @@
-class Toolkit {
+class Index {
     constructor(account, password, publicToken = null) {
         this.account = account;
         this.password = password;
@@ -142,4 +142,4 @@ class Toolkit {
     }
 }
 
-module.exports = Toolkit;
+module.exports = Index;
