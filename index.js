@@ -4,7 +4,7 @@ class Index {
         this.password = password;
         this.publicToken = publicToken; // 初始 token 為 null
         this.axios = require('axios').default;
-        this.host = 'https://tw.fd-api.com/api/v5';
+        this.host = 'https://tw.fd-api.com/api';
     }
 
     /**
@@ -18,13 +18,13 @@ class Index {
             if (this.publicToken) {
                 let res = await this.getHistoryOrders();
                 if (res) {
-                    console.log('publicToken 可用，不執行登入');
+                    // console.log('publicToken 可用，不執行登入');
                     return;
                 } else {
-                    console.log('publicToken 無效，執行登入');
+                    // console.log('publicToken 無效，執行登入');
                 }
             } else {
-                console.log('執行登入!');
+                // console.log('執行登入!');
             }
 
             const response = await this.axios.post('https://www.foodpanda.com.tw/login/new/api/login', {
@@ -58,7 +58,7 @@ class Index {
         return new Promise(async (resolve) => {
             try {
                 const response =
-                    await this.axios.get(`${this.host}/orders/order_history?include=order_products,order_details&language_id=6&offset=${offset}&limit=${limit}`, {
+                    await this.axios.get(`${this.host}/v5/orders/order_history?include=order_products,order_details&language_id=6&offset=${offset}&limit=${limit}`, {
                         headers: {
                             "authorization": `Bearer ${this.publicToken}`,
                             "x-fp-api-key": "volo",
@@ -81,7 +81,7 @@ class Index {
         return new Promise(async (resolve) => {
             try {
                 const response =
-                    await this.axios.get(`${this.host}/tracking/active-orders`, {
+                    await this.axios.get(`${this.host}/v5/tracking/active-orders`, {
                         headers: {
                             "authorization": `Bearer ${this.publicToken}`,
                             "x-fp-api-key": "volo",
@@ -104,7 +104,7 @@ class Index {
         return new Promise(async (resolve) => {
             try {
                 const response =
-                    await this.axios.get(`${this.host}/wallet/transactionhistory/${orderId}`, {
+                    await this.axios.get(`${this.host}/v5/wallet/transactionhistory/${orderId}`, {
                         headers: {
                             "authorization": `Bearer ${this.publicToken}`,
                             "x-fp-api-key": "volo",
@@ -127,7 +127,7 @@ class Index {
         return new Promise(async (resolve) => {
             try {
                 const response =
-                    await this.axios.get(`${this.host}/tracking/orders/${orderId}?time_variation=Variation6&stacked_order_variation=Variation1&delivery_time_variation=Variation1&order_status_variation=Control`, {
+                    await this.axios.get(`${this.host}/v5/tracking/orders/${orderId}?time_variation=Variation6&stacked_order_variation=Variation1&delivery_time_variation=Variation1&order_status_variation=Control`, {
                         headers: {
                             "authorization": `Bearer ${this.publicToken}`,
                             "x-fp-api-key": "volo",
@@ -137,6 +137,57 @@ class Index {
                 resolve(data);
             } catch (err) {
                 resolve(false);
+            }
+        });
+    }
+
+    /**
+     * getCouponList
+     *
+     * @returns {Promise<unknown>}
+     */
+    async getCouponList() {
+        return new Promise(async (resolve) => {
+            try {
+                const response =
+
+                    await this.axios.get(`${this.host}/v6/incentives-wallet/vouchers?locale=zh_TW&platform=web_frontend&statuses=APPLICABLE%2CNOT_APPLICABLE`, {
+                        headers: {
+                            "authorization": `Bearer ${this.publicToken}`,
+                            "x-fp-api-key": "volo",
+                        }
+                    });
+                const data = response.data.data;
+                resolve(data);
+            } catch (err) {
+                resolve(false);
+            }
+        });
+    }
+
+    /**
+     * couponCode
+     *
+     * @param couponCode
+     * @returns {Promise<unknown>}
+     */
+    async useCoupon(couponCode) {
+        return new Promise(async (resolve) => {
+            try {
+                const url = 'https://tw.fd-api.com/api/v6/incentives-wallet/vouchers/save?locale=zh_TW';
+                const headers = {
+                    "authorization": `Bearer ${this.publicToken}`,
+                    "x-fp-api-key": "volo",
+                    "Content-Type": "application/json;charset=UTF-8",
+                    "x-pd-language-id": 6,
+                };
+                const data = {
+                    'code': couponCode
+                };
+                const response = await this.axios.post(url, data, {headers});
+                resolve(response.data);
+            } catch (err) {
+                resolve(err.response.data);
             }
         });
     }
